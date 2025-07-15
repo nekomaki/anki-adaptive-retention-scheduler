@@ -33,10 +33,10 @@ TARGET_STABILITY = 36500
 D_FACTOR = 3
 S_FACTOR = 1
 S_MIN_IDX = math.floor(math.log(S_MIN) * S_FACTOR)
-RETENTION_LOW = 0.6
+RETENTION_LOW = 0.75
 RETENTION_HIGH = 0.9
 MAX_ITERATIONS = 15
-SEARCH_ITERATIONS = 8
+SEARCH_ITERATIONS = 4
 SEARCH_ITERATIONS_EVAL = 8
 
 cache = {}
@@ -162,3 +162,31 @@ def find_optimal_desired_retention(
     result = _expected_workload_until_retired_dp(state, fsrs_params)
 
     return result
+
+if __name__ == "__main__":
+    # Example usage
+    state = State(9.5, 1.0)
+    fsrsParams = (
+        0.0051,
+        0.2065,
+        2.7191,
+        24.4337,
+        6.8568,
+        0.7400,
+        2.1718,
+        0.0281,
+        1.7415,
+        0.0000,
+        1.2247,
+        1.7644,
+        0.1014,
+        0.1922,
+        2.2166,
+        0.0682,
+        3.1048,
+        0.9843,
+        0.2104,
+        0.1192,
+        0.1029,
+    )
+    print(find_optimal_desired_retention(state, fsrsParams))
