@@ -86,7 +86,4 @@ def _fsrs_simulate_wrapper(fsrs_params: tuple):
 def fsrs_simulate(
     state: State, fsrs_params: tuple, t_review: float, retention: float | None = None
 ):
-    if isinstance(fsrs_params, list):
-        fsrs_params = tuple(fsrs_params)
-
     return _fsrs_simulate_wrapper(fsrs_params)(state, t_review, retention)

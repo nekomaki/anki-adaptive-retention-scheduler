@@ -42,7 +42,9 @@ SEARCH_ITERATIONS_EVAL = 8
 cache = {}
 
 
-def _expected_workload_until_retired_dp_wrapper(fsrs_params):
+def _expected_workload_until_retired_dp(
+    state: State, fsrs_params: tuple
+) -> tuple[float, float]:
     decay = -fsrs_params[20]
     factor = 0.9 ** (1 / decay) - 1
     fsrs_simulate_with_params = _fsrs_simulate_wrapper(fsrs_params)
@@ -61,7 +63,7 @@ def _expected_workload_until_retired_dp_wrapper(fsrs_params):
         t_review = state.stability * alpha
 
         # Disable same-day reviews
-        t_review = max(1, int(t_review))
+        t_review = max(1, t_review)
 
         next_states = fsrs_simulate_with_params(state, t_review=t_review)
 
@@ -103,14 +105,12 @@ def _expected_workload_until_retired_dp_wrapper(fsrs_params):
             [(1, 0.8) for _ in range(len(stabilities))]
             for _ in range(len(difficulties))
         ]
-        difficulty_size = len(difficulties)
-        stability_size = len(stabilities)
 
         # Compute the expected workload for each state
         for _ in range(MAX_ITERATIONS):
-            for i in range(difficulty_size):
-                for j in range(stability_size):
-                    state = State(difficulties[i], stabilities[j])
+            for i, difficulty in enumerate(difficulties):
+                for j, stability in enumerate(stabilities):
+                    state = State(difficulty, stability)
                     f[i][j] = golden_section_search(
                         lambda r: _calc_workload(f, state, r),
                         lo=RETENTION_LOW,
@@ -135,13 +135,7 @@ def _expected_workload_until_retired_dp_wrapper(fsrs_params):
 
         return result
 
-    return _expected_workload
-
-
-def _expected_workload_until_retired_dp(
-    state: State, fsrs_params: tuple
-) -> tuple[float, float]:
-    return _expected_workload_until_retired_dp_wrapper(fsrs_params)(state)
+    return _expected_workload(state)
 
 
 def find_optimal_desired_retention(
@@ -156,12 +150,10 @@ def find_optimal_desired_retention(
     if state.stability < 0:
         raise ValueError("Stability must be positive")
 
-    if isinstance(fsrs_params, list):
-        fsrs_params = tuple(fsrs_params)
-
     result = _expected_workload_until_retired_dp(state, fsrs_params)
 
     return result
+
 
 if __name__ == "__main__":
     # Example usage

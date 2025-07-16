@@ -13,6 +13,9 @@ from .fsrs6 import (
 def find_optimal_desired_retention(
     state: State, fsrs_params: tuple
 ) -> tuple[float, float]:
+    if len(fsrs_params) != 19:
+        raise ValueError("Only FSRS==5 is supported")
+
     fsrs_params = tuple(fsrs_params) + (0.0, -DECAY)
 
     return find_optimal_desired_retention_v6(

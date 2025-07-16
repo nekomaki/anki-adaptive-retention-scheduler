@@ -34,11 +34,11 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
 
     if is_valid_fsrs6_params(fsrs_params_v6):
         find_optimal_desired_retention_func = (
-            lambda state: find_optimal_desired_retention_v6(state, fsrs_params_v6)
+            lambda state: find_optimal_desired_retention_v6(state, tuple(fsrs_params_v6))
         )
     elif is_valid_fsrs5_params(fsrs_params):
         find_optimal_desired_retention_func = (
-            lambda state: find_optimal_desired_retention_v5(state, fsrs_params)
+            lambda state: find_optimal_desired_retention_v5(state, tuple(fsrs_params))
         )
     else:
         return text
