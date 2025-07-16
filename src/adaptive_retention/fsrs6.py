@@ -34,7 +34,7 @@ D_FACTOR = 3
 S_FACTOR = 1
 S_MIN_IDX = math.floor(math.log(S_MIN) * S_FACTOR)
 RETENTION_LOW = 0.75
-RETENTION_HIGH = 0.9
+RETENTION_HIGH = 0.90
 MAX_ITERATIONS = 15
 SEARCH_ITERATIONS = 4
 SEARCH_ITERATIONS_EVAL = 8
@@ -63,7 +63,7 @@ def _expected_workload_until_retired_dp(
         t_review = state.stability * alpha
 
         # Disable same-day reviews
-        t_review = max(1, t_review)
+        t_review = max(1, round(t_review))
 
         next_states = fsrs_simulate_with_params(state, t_review=t_review)
 
@@ -157,28 +157,32 @@ def find_optimal_desired_retention(
 
 if __name__ == "__main__":
     # Example usage
-    state = State(9.5, 1.0)
-    fsrsParams = (
-        0.0051,
-        0.2065,
-        2.7191,
-        24.4337,
-        6.8568,
-        0.7400,
-        2.1718,
-        0.0281,
-        1.7415,
-        0.0000,
-        1.2247,
-        1.7644,
-        0.1014,
-        0.1922,
-        2.2166,
-        0.0682,
-        3.1048,
-        0.9843,
-        0.2104,
-        0.1192,
-        0.1029,
-    )
-    print(find_optimal_desired_retention(state, fsrsParams))
+    stabilities = [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
+    for stability in stabilities:
+        state = State(difficulty=10.0, stability=stability)
+        fsrsParams = (
+            0.8065,
+            8.1580,
+            17.1604,
+            100.0000,
+            6.1813,
+            0.8775,
+            3.0892,
+            0.0223,
+            2.2848,
+            0.0126,
+            1.1841,
+            1.3679,
+            0.0827,
+            0.1116,
+            1.4900,
+            0.5721,
+            2.1657,
+            0.7048,
+            0.1296,
+            0.1008,
+            0.1000,
+        )
+        print(
+            f"Stability: {stability}, Result: {find_optimal_desired_retention(state, fsrsParams)}"
+        )

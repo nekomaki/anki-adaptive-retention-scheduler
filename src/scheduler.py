@@ -110,7 +110,7 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
         else:
             normal.review.CopyFrom(
                 Review(
-                    scheduled_days=int(interval),
+                    scheduled_days=round(interval),
                     memory_state=FsrsMemoryState(
                         difficulty=state.difficulty,
                         stability=state.stability,
