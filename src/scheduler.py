@@ -10,7 +10,12 @@ from .adaptive_retention.fsrs6 import (
     find_optimal_desired_retention as find_optimal_desired_retention_v6,
 )
 from .config_manager import get_config
-from .fsrs_utils.fsrs6 import interval_from_retention
+from .fsrs_utils.fsrs5 import (
+    interval_from_retention as interval_from_retention_v5,
+)
+from .fsrs_utils.fsrs6 import (
+    interval_from_retention as interval_from_retention_v6,
+)
 from .fsrs_utils.types import State
 from .utils import is_valid_fsrs5_params, is_valid_fsrs6_params
 
@@ -34,11 +39,21 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
 
     if is_valid_fsrs6_params(fsrs_params_v6):
         find_optimal_desired_retention_func = (
-            lambda state: find_optimal_desired_retention_v6(state, tuple(fsrs_params_v6))
+            lambda state: find_optimal_desired_retention_v6(
+                state, tuple(fsrs_params_v6)
+            )
+        )
+        interval_from_retention_func = (
+            lambda state, retention: interval_from_retention_v6(
+                state, retention, -fsrs_params_v6[20]
+            )
         )
     elif is_valid_fsrs5_params(fsrs_params):
         find_optimal_desired_retention_func = (
             lambda state: find_optimal_desired_retention_v5(state, tuple(fsrs_params))
+        )
+        interval_from_retention_func = (
+            lambda state, retention: interval_from_retention_v5(state, retention)
         )
     else:
         return text
@@ -68,7 +83,7 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
         state = State(float(memory_state.difficulty), float(memory_state.stability))
 
         retention = find_optimal_desired_retention_func(state)[1]
-        interval = interval_from_retention(state, retention, -fsrs_params_v6[20])
+        interval = interval_from_retention_func(state, retention)
 
         normal.ClearField(kind)
 

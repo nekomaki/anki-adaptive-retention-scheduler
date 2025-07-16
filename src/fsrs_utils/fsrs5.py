@@ -1,4 +1,5 @@
 from .fsrs6 import fsrs_simulate as fsrs_simulate_v6
+from .fsrs6 import interval_from_retention as interval_from_retention_v6
 from .fsrs6 import power_forgetting_curve as power_forgetting_curve_v6
 from .types import State
 
@@ -14,6 +15,10 @@ FACTOR = 0.9 ** (1 / DECAY) - 1
 
 def power_forgetting_curve(t: float, s: float) -> float:
     return power_forgetting_curve_v6(t, s, DECAY)
+
+
+def interval_from_retention(state: State, retention: float) -> float:
+    return interval_from_retention_v6(state, retention, DECAY)
 
 
 def fsrs_simulate(

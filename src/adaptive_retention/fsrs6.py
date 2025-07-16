@@ -147,7 +147,7 @@ def find_optimal_desired_retention(
     if not 1 <= state.difficulty <= 10:
         raise ValueError("Difficulty must be in [1, 10]")
 
-    if state.stability < 0:
+    if state.stability <= 0:
         raise ValueError("Stability must be positive")
 
     result = _expected_workload_until_retired_dp(state, fsrs_params)
