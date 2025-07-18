@@ -63,8 +63,6 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
 
         memory_state = None
 
-        if kind == "new":
-            memory_state = None
         if kind == "review":
             if normal.review.HasField("memory_state"):
                 memory_state = normal.review.memory_state
@@ -82,7 +80,24 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
 
         state = State(float(memory_state.difficulty), float(memory_state.stability))
 
-        retention = find_optimal_desired_retention_func(state)[1]
+        retention = find_optimal_desired_retention_func(state)
+
+        # If the algorithm fails to converge, fall back to the default behavior
+        if retention is None:
+            if kind in ("learning", "relearning"):
+                normal.ClearField(kind)
+                normal.review.CopyFrom(
+                    Review(
+                        scheduled_days=1,
+                        memory_state=FsrsMemoryState(
+                            difficulty=state.difficulty,
+                            stability=state.stability,
+                        ),
+                    )
+                )
+            return
+
+        retention = retention[1]
         interval = interval_from_retention_func(state, retention)
 
         normal.ClearField(kind)

@@ -2,6 +2,8 @@
 
 This addon implements an **adaptive retention scheduler** for FSRS. Both FSRS 5 and FSRS 6 are supported.
 
+**Important note:** This addon is quite experimental. It is based on FSRS simulations, but the reliability of these simulations has not been validated so far.
+
 ## How it works
 
 By default, FSRS uses a **fixed desired retention** and optimizes the knowledge-workload ratio over time.

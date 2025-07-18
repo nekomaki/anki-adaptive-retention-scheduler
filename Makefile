@@ -3,7 +3,7 @@
 .PHONY: build test clean
 
 DIST_DIR := dist
-OUTPUT := $(DIST_DIR)/output.ankiaddon
+OUTPUT := $(DIST_DIR)/adaptive-retention-scheduler.ankiaddon
 
 build:
 	@echo "Building Anki addon package..."

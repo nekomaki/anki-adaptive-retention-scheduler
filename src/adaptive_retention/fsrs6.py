@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 try:
     from ..fsrs_utils.fsrs6 import (
@@ -35,7 +36,7 @@ S_FACTOR = 1
 S_MIN_IDX = math.floor(math.log(S_MIN) * S_FACTOR)
 RETENTION_LOW = 0.75
 RETENTION_HIGH = 0.90
-MAX_ITERATIONS = 15
+MAX_ITERATIONS = 20
 SEARCH_ITERATIONS = 4
 SEARCH_ITERATIONS_EVAL = 8
 
@@ -44,7 +45,7 @@ cache = {}
 
 def _expected_workload_until_retired_dp(
     state: State, fsrs_params: tuple
-) -> tuple[float, float]:
+) -> Optional[tuple[float, float]]:
     decay = -fsrs_params[20]
     factor = 0.9 ** (1 / decay) - 1
     fsrs_simulate_with_params = _fsrs_simulate_wrapper(fsrs_params)
@@ -108,15 +109,27 @@ def _expected_workload_until_retired_dp(
 
         # Compute the expected workload for each state
         for _ in range(MAX_ITERATIONS):
+            delta = 0
             for i, difficulty in enumerate(difficulties):
-                for j, stability in enumerate(stabilities):
+                for revj, stability in enumerate(reversed(stabilities)):
+                    j = len(stabilities) - 1 - revj
                     state = State(difficulty, stability)
+                    old = f[i][j][0]
                     f[i][j] = golden_section_search(
                         lambda r: _calc_workload(f, state, r),
                         lo=RETENTION_LOW,
                         hi=RETENTION_HIGH,
                         max_iter=SEARCH_ITERATIONS,
                     )
+                    delta += (old - f[i][j][0]) ** 2
+
+            # Early stopping if f has converged
+            if delta <= 1:
+                break
+
+        # Return None if the algorithm fails to converge
+        if delta > 1:
+            return None
 
         return f
 
@@ -125,7 +138,10 @@ def _expected_workload_until_retired_dp(
 
     f = cache[fsrs_params]
 
-    def _expected_workload(state: State) -> tuple[float, float]:
+    def _expected_workload(state: State) -> Optional[tuple[float, float]]:
+        if f is None:
+            return None
+
         result = golden_section_search(
             lambda r: _calc_workload(f, state, r),
             lo=RETENTION_LOW,
@@ -140,7 +156,7 @@ def _expected_workload_until_retired_dp(
 
 def find_optimal_desired_retention(
     state: State, fsrs_params: tuple
-) -> tuple[float, float]:
+) -> Optional[tuple[float, float]]:
     if len(fsrs_params) != 21:
         raise ValueError("Only FSRS==6 is supported")
 
