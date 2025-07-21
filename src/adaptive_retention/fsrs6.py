@@ -10,6 +10,7 @@ try:
         _fsrs_simulate_wrapper,
     )
     from ..fsrs_utils.types import State
+    from ..knowledge_ema.fsrs6 import exp_knowledge_gain
     from ..search_algorithms.unimodel import (
         brent_search,
         golden_section_search,
@@ -24,6 +25,7 @@ except ImportError:
         _fsrs_simulate_wrapper,
     )
     from fsrs_utils.types import State
+    from knowledge_ema.fsrs6 import exp_knowledge_gain
     from search_algorithms.unimodel import (
         brent_search,
         golden_section_search,
@@ -84,10 +86,10 @@ def _expected_workload_until_retired_dp(
                 j1 = j0 + 1
                 wj = j_float - j0  # wj may be negative
 
-                f00 = f[i0][j0][0]
-                f01 = f[i0][j1][0]
-                f10 = f[i1][j0][0]
-                f11 = f[i1][j1][0]
+                f00 = f[i0][j0]
+                f01 = f[i0][j1]
+                f10 = f[i1][j0]
+                f11 = f[i1][j1]
 
                 interpolated = (
                     (1 - wi) * (1 - wj) * f00
@@ -102,10 +104,7 @@ def _expected_workload_until_retired_dp(
         return workload
 
     def _init_f():
-        f = [
-            [(1, 0.8) for _ in range(len(stabilities))]
-            for _ in range(len(difficulties))
-        ]
+        f = [[1 for _ in range(len(stabilities))] for _ in range(len(difficulties))]
 
         # Compute the expected workload for each state
         for _ in range(MAX_ITERATIONS):
@@ -114,14 +113,14 @@ def _expected_workload_until_retired_dp(
                 for revj, stability in enumerate(reversed(stabilities)):
                     j = len(stabilities) - 1 - revj
                     state = State(difficulty, stability)
-                    old = f[i][j][0]
+                    old = f[i][j]
                     f[i][j] = golden_section_search(
                         lambda r: _calc_workload(f, state, r),
                         lo=RETENTION_LOW,
                         hi=RETENTION_HIGH,
                         max_iter=SEARCH_ITERATIONS,
-                    )
-                    delta += (old - f[i][j][0]) ** 2
+                    )[0]
+                    delta += (old - f[i][j]) ** 2
 
             # Early stopping if f has converged
             if delta <= 1:
@@ -138,10 +137,10 @@ def _expected_workload_until_retired_dp(
 
     f = cache[fsrs_params]
 
-    def _expected_workload(state: State) -> Optional[tuple[float, float]]:
-        if f is None:
-            return None
+    if f is None:
+        return None
 
+    def _expected_workload(state: State) -> Optional[tuple[float, float]]:
         result = golden_section_search(
             lambda r: _calc_workload(f, state, r),
             lo=RETENTION_LOW,
@@ -152,6 +151,45 @@ def _expected_workload_until_retired_dp(
         return result
 
     return _expected_workload(state)
+
+
+def _maximum_knowledge_single_step(
+    state: State, fsrs_params: tuple
+) -> tuple[float, float]:
+    # def _calc_reviewed_knowledge_key(retention: float) -> float:
+    #     """Calculate the expected knowledge after a review with the given retention."""
+    #     alpha = (retention ** (1 / -fsrs_params[20]) - 1) / (0.9 ** (1 / -fsrs_params[20]) - 1)
+    #     t_review = state.stability * alpha
+
+    #     # Disable same-day reviews
+    #     t_review = max(1, round(t_review))
+
+    def _exp_knowledge_gain_key(retention: float) -> float:
+        """Calculate the expected knowledge after a review with the given retention."""
+        alpha = (retention ** (1 / -fsrs_params[20]) - 1) / (0.9 ** (1 / -fsrs_params[20]) - 1)
+        t_review = state.stability * alpha
+
+        # Disable same-day reviews
+        t_review = max(1, round(t_review))
+
+        return exp_knowledge_gain(state, fsrs_params, t_review)
+
+    # result = golden_section_search(
+    #     _calc_reviewed_knowledge_key,
+    #     lo=RETENTION_LOW,
+    #     hi=RETENTION_HIGH,
+    #     max_iter=SEARCH_ITERATIONS_EVAL,
+    # )
+    result = (-math.inf, 0)
+
+    for retentionx100 in range(60, 91):
+        retention = retentionx100 / 100.0
+        knowledge_gain = _exp_knowledge_gain_key(retention)
+
+        if knowledge_gain > result[0]:
+            result = (knowledge_gain, retention)
+
+    return result
 
 
 def find_optimal_desired_retention(

@@ -26,10 +26,10 @@ config = get_config()
 
 
 def _on_card_will_show(text: str, card: Card, kind: str) -> str:
-    if not config.enabled:
+    if kind != "reviewAnswer":
         return text
 
-    if kind != "reviewAnswer":
+    if not (config.min_lifelong_workload or config.disabled_same_day_review):
         return text
 
     did = card.odid or card.did
@@ -83,12 +83,24 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
         retention = find_optimal_desired_retention_func(state)
 
         # If the algorithm fails to converge, fall back to the default behavior
-        if retention is None:
-            if kind in ("learning", "relearning"):
+        if config.disabled_same_day_review or retention is None:
+            if kind == "learning":
                 normal.ClearField(kind)
                 normal.review.CopyFrom(
                     Review(
                         scheduled_days=1,
+                        memory_state=FsrsMemoryState(
+                            difficulty=state.difficulty,
+                            stability=state.stability,
+                        ),
+                    )
+                )
+            elif kind == "relearning":
+                scheduled_days = normal.relearning.review.scheduled_days
+                normal.ClearField(kind)
+                normal.review.CopyFrom(
+                    Review(
+                        scheduled_days=scheduled_days,
                         memory_state=FsrsMemoryState(
                             difficulty=state.difficulty,
                             stability=state.stability,
