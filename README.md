@@ -1,10 +1,8 @@
-# Adaptive Retention Scheduler for FSRS
+# Adaptive Retention Scheduler for FSRS (Deprecated)
 
-This project implements a set of FSRS schedulers to replace the "fixed desired retention" scheduler used in Anki by default. Both FSRS 5 and FSRS 6 are supported.
+This addon implements an adaptive retention scheduler that replaces the default fixed desired retention strategy used in Anki's FSRS. It supports both FSRS v5 and v6.
 
-<!-- **Important note:** This addon is quite experimental. It is based on FSRS simulations, but the reliability of these simulations has not been validated so far. -->
-
-**Update note:** The "Minimize Lifelong Workload" scheduler is now deprecated and disabled by default. The new default mode only disables same-day reviews. I may develop other schedulers and write an article discussing the problem of scheduler designs.
+Note: This addon is now deprecated. If you're interested in other scheduling strategies, I would recommend trying [No Scheduler](https://ankiweb.net/shared/info/215758055).
 
 ## How it works
 
@@ -28,6 +26,8 @@ where:
 - $w(\text{card})$ is the expected future review workload,
 - $\text{card}'$ is the future state of the card with retention of $r$.
 
+The above problem can be efficiently solved by dynamic programming.
+
 ## When to use this addon
 
 This addon is designed for users with **lifelong learning goals**, where minimizing long-term workload is more important than short-term efficiency.
@@ -37,4 +37,3 @@ This addon is designed for users with **lifelong learning goals**, where minimiz
 - **Same-day reviews are disabled** by this addon, as they tend to increase workload under current FSRS versions.
 - **Use the answer buttons consistently**. Don't let the suggested interval influence your choice.
 - **Avoid using "Again" as "Save for Later"**. This common habit from default Anki behavior is discouraged when using FSRS. When using this add-on, choosing "Again" will let you review the card again shortly.
-

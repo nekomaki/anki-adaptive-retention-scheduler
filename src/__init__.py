@@ -7,14 +7,14 @@ from .scheduler import init_scheduler
 config = get_config()
 
 
-def set_mode_disabled_same_day_review():
-    config.disabled_same_day_review = True
+def set_mode_disable_same_day_reviews():
+    config.disable_same_day_reviews = True
     config.min_lifelong_workload = False
 
 
 def set_mode_min_lifelong_workload():
     config.min_lifelong_workload = True
-    config.disabled_same_day_review = False
+    config.disable_same_day_reviews = False
 
 
 # Main menu
@@ -29,16 +29,16 @@ mode_group = QActionGroup(mode_menu)
 mode_group.setExclusive(True)
 
 # Radio-style option 1
-action_disabled_same_day_review = QAction("Disable same-day review", mw, checkable=True)
-action_disabled_same_day_review.setChecked(config.disabled_same_day_review)
-action_disabled_same_day_review.triggered.connect(set_mode_disabled_same_day_review)
-mode_group.addAction(action_disabled_same_day_review)
-mode_menu.addAction(action_disabled_same_day_review)
+action_disable_same_day_reviews = QAction(
+    "Only disable same-day reviews", mw, checkable=True
+)
+action_disable_same_day_reviews.setChecked(config.disable_same_day_reviews)
+action_disable_same_day_reviews.triggered.connect(set_mode_disable_same_day_reviews)
+mode_group.addAction(action_disable_same_day_reviews)
+mode_menu.addAction(action_disable_same_day_reviews)
 
 # Radio-style option 2
-action_min_lifelong_workload = QAction(
-    "Minimize lifelong workload (Deprecated)", mw, checkable=True
-)
+action_min_lifelong_workload = QAction("Minimize lifelong workload", mw, checkable=True)
 action_min_lifelong_workload.setChecked(config.min_lifelong_workload)
 action_min_lifelong_workload.triggered.connect(set_mode_min_lifelong_workload)
 mode_group.addAction(action_min_lifelong_workload)

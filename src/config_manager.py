@@ -19,12 +19,12 @@ class Config(object):
         self.save()
 
     @property
-    def disabled_same_day_review(self):
-        return self.data.get("disabled_same_day_review")
+    def disable_same_day_reviews(self):
+        return self.data.get("disable_same_day_reviews")
 
-    @disabled_same_day_review.setter
-    def disabled_same_day_review(self, value):
-        self.data["disabled_same_day_review"] = value
+    @disable_same_day_reviews.setter
+    def disable_same_day_reviews(self, value):
+        self.data["disable_same_day_reviews"] = value
         self.save()
 
     def save(self):

@@ -1,4 +1,4 @@
 {
-  "min_lifelong_workload": false,
-  "disabled_same_day_review": true
+  "min_lifelong_workload": true,
+  "disable_same_day_reviews": false
 }

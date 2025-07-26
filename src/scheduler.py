@@ -29,7 +29,7 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
     if kind != "reviewAnswer":
         return text
 
-    if not (config.min_lifelong_workload or config.disabled_same_day_review):
+    if not (config.min_lifelong_workload or config.disable_same_day_reviews):
         return text
 
     did = card.odid or card.did
@@ -83,7 +83,7 @@ def _on_card_will_show(text: str, card: Card, kind: str) -> str:
         retention = find_optimal_desired_retention_func(state)
 
         # If the algorithm fails to converge, fall back to the default behavior
-        if config.disabled_same_day_review or retention is None:
+        if config.disable_same_day_reviews or retention is None:
             if kind == "learning":
                 normal.ClearField(kind)
                 normal.review.CopyFrom(

@@ -77,7 +77,7 @@ def _expected_workload_until_retired_dp(
             if next_state.stability < TARGET_STABILITY:
                 # Bilinear interpolation
                 i_float = (next_state.difficulty - 1) * D_FACTOR
-                i0 = int(math.floor(i_float))
+                i0 = min(int(math.floor(i_float)), len(difficulties) - 2)
                 i1 = i0 + 1
                 wi = i_float - i0
 
@@ -153,45 +153,6 @@ def _expected_workload_until_retired_dp(
     return _expected_workload(state)
 
 
-def _maximum_knowledge_single_step(
-    state: State, fsrs_params: tuple
-) -> tuple[float, float]:
-    # def _calc_reviewed_knowledge_key(retention: float) -> float:
-    #     """Calculate the expected knowledge after a review with the given retention."""
-    #     alpha = (retention ** (1 / -fsrs_params[20]) - 1) / (0.9 ** (1 / -fsrs_params[20]) - 1)
-    #     t_review = state.stability * alpha
-
-    #     # Disable same-day reviews
-    #     t_review = max(1, round(t_review))
-
-    def _exp_knowledge_gain_key(retention: float) -> float:
-        """Calculate the expected knowledge after a review with the given retention."""
-        alpha = (retention ** (1 / -fsrs_params[20]) - 1) / (0.9 ** (1 / -fsrs_params[20]) - 1)
-        t_review = state.stability * alpha
-
-        # Disable same-day reviews
-        t_review = max(1, round(t_review))
-
-        return exp_knowledge_gain(state, fsrs_params, t_review)
-
-    # result = golden_section_search(
-    #     _calc_reviewed_knowledge_key,
-    #     lo=RETENTION_LOW,
-    #     hi=RETENTION_HIGH,
-    #     max_iter=SEARCH_ITERATIONS_EVAL,
-    # )
-    result = (-math.inf, 0)
-
-    for retentionx100 in range(60, 91):
-        retention = retentionx100 / 100.0
-        knowledge_gain = _exp_knowledge_gain_key(retention)
-
-        if knowledge_gain > result[0]:
-            result = (knowledge_gain, retention)
-
-    return result
-
-
 def find_optimal_desired_retention(
     state: State, fsrs_params: tuple
 ) -> Optional[tuple[float, float]]:
@@ -211,32 +172,32 @@ def find_optimal_desired_retention(
 
 if __name__ == "__main__":
     # Example usage
-    stabilities = [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
-    for stability in stabilities:
-        state = State(difficulty=10.0, stability=stability)
-        fsrsParams = (
-            0.8065,
-            8.1580,
-            17.1604,
-            100.0000,
-            6.1813,
-            0.8775,
-            3.0892,
-            0.0223,
-            2.2848,
-            0.0126,
-            1.1841,
-            1.3679,
-            0.0827,
-            0.1116,
-            1.4900,
-            0.5721,
-            2.1657,
-            0.7048,
-            0.1296,
-            0.1008,
-            0.1000,
-        )
-        print(
-            f"Stability: {stability}, Result: {find_optimal_desired_retention(state, fsrsParams)}"
-        )
+    # stabilities = [0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
+    # for stability in stabilities:
+    # state = State(difficulty=10.0, stability=stability)
+
+    state = State(difficulty=1.0, stability=3.0)
+    fsrs_params = (
+        0.0100,
+        0.0100,
+        2.2209,
+        99.9975,
+        4.9538,
+        0.6577,
+        7.9751,
+        0.0000,
+        3.0601,
+        0.1544,
+        1.5607,
+        1.3220,
+        0.0953,
+        0.2975,
+        1.6218,
+        0.3676,
+        4.0111,
+        0.9264,
+        0.1766,
+        0.0000,
+        0.5000,
+    )
+    print(f"Result: {find_optimal_desired_retention(state, fsrs_params)}")
