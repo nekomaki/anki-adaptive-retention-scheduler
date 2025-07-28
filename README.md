@@ -16,7 +16,7 @@ Formally, the scheduler solves the following recursive problem:
 
 $$
 w(\text{card}) = \begin{cases}
-\mathbb{E}_{\text{r}}[w(\text{card}')] + 1 & \text{if } \text{stability} < 36500 \\\
+\min_{r}\mathbb{E}_{\text{card'}}[w(\text{card}')] + 1 & \text{if } \text{stability} < 36500 \\\
 0 & \text{otherwise}
 \end{cases}
 $$
